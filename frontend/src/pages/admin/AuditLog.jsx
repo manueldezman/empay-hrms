@@ -56,7 +56,6 @@ export default function AuditLog() {
   const [actionFilter, setActionFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [searchInput, setSearchInput] = useState('');
 
   const limit = 20;
 
