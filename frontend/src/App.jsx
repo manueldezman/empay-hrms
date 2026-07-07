@@ -9,6 +9,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
+import AuditLog from './pages/admin/AuditLog';
 import Settings from './pages/admin/Settings';
 import HRDashboard from './pages/hr/HRDashboard';
 import Employees from './pages/hr/Employees';
@@ -74,6 +75,7 @@ function AppRoutes() {
         {/* Admin */}
         <Route path="admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
         <Route path="admin/users" element={<ProtectedRoute roles={['admin']}><UserManagement /></ProtectedRoute>} />
+        <Route path="admin/audit-logs" element={<ProtectedRoute roles={['admin']}><AuditLog /></ProtectedRoute>} />
         <Route path="admin/settings" element={<ProtectedRoute roles={['admin']}><Settings /></ProtectedRoute>} />
         {/* HR */}
         <Route path="hr/dashboard" element={<ProtectedRoute roles={['admin', 'hr_officer']}><HRDashboard /></ProtectedRoute>} />
