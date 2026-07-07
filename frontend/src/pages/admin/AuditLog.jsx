@@ -8,6 +8,15 @@ import {
   Clock,
 } from 'lucide-react';
 
+function useDebounce(value, delay = 500) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
 const ACTION_OPTIONS = [
   { value: '', label: 'All Actions' },
   { value: 'SALARY_UPDATED', label: 'Salary Updated' },
@@ -53,18 +62,18 @@ export default function AuditLog() {
 
   // Filters
   const [userIdFilter, setUserIdFilter] = useState('');
+  const debouncedUserId = useDebounce(userIdFilter, 500);
   const [actionFilter, setActionFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [searchInput, setSearchInput] = useState('');
 
   const limit = 20;
 
-  const fetchLogs = async (page = 1) => {
+  const fetchLogs = async (page = 1, userId = debouncedUserId) => {
     setLoading(true);
     try {
       const params = { page, limit };
-      if (userIdFilter) params.user_id = userIdFilter;
+      if (userId) params.user_id = userId;
       if (actionFilter) params.action = actionFilter;
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
@@ -80,8 +89,8 @@ export default function AuditLog() {
   };
 
   useEffect(() => {
-    fetchLogs(1);
-  }, [userIdFilter, actionFilter, startDate, endDate]);
+    fetchLogs(1, debouncedUserId);
+  }, [debouncedUserId, actionFilter, startDate, endDate]);
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
