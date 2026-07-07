@@ -37,7 +37,7 @@ class SettingsService {
   }
 
   async getDbStats() {
-    const tables = ['users', 'attendance', 'leave_requests', 'leave_types', 'salary_structures', 'payruns', 'payslips', 'notifications', 'settings'];
+    const tables = ['users', 'attendance', 'leave_requests', 'leave_types', 'salary_structures', 'payruns', 'payslips', 'notifications', 'settings', 'audit_logs'];
     const stats = {};
 
     for (const table of tables) {

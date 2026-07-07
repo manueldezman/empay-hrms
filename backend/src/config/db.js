@@ -179,6 +179,18 @@ const SCHEMA = `
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
 
+  -- ── Audit Logs ────────────────────────────────────────────────────────────
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    id               BIGSERIAL     PRIMARY KEY,
+    user_id          INT           NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    action           VARCHAR(100)  NOT NULL,
+    target_id        BIGINT        NOT NULL,
+    target_type      VARCHAR(50)   NOT NULL,
+    metadata         JSONB,
+    ip_address       VARCHAR(45)   NOT NULL,
+    created_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+  );
+
   -- ── Settings ───────────────────────────────────────────────────────────────
   CREATE TABLE IF NOT EXISTS settings (
     id SERIAL PRIMARY KEY,
@@ -211,6 +223,12 @@ const SCHEMA = `
   CREATE INDEX IF NOT EXISTS idx_payslip_payrun     ON payslips (payrun_id);
   CREATE INDEX IF NOT EXISTS idx_payslip_employee   ON payslips (employee_id);
   CREATE INDEX IF NOT EXISTS idx_payrun_month_year  ON payruns (month, year);
+
+  -- Audit: filtered by user, target, action, and date range
+  CREATE INDEX IF NOT EXISTS idx_audit_user_id      ON audit_logs (user_id);
+  CREATE INDEX IF NOT EXISTS idx_audit_target_id    ON audit_logs (target_id);
+  CREATE INDEX IF NOT EXISTS idx_audit_action       ON audit_logs (action);
+  CREATE INDEX IF NOT EXISTS idx_audit_created_at   ON audit_logs (created_at);
 `;
 
 // ─── Attendance Helpers ───────────────────────────────────────────────────────

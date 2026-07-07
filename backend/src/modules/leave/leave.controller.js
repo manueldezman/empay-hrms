@@ -1,4 +1,5 @@
 const leaveService = require('./leave.service');
+const auditService = require('../audit/audit.service');
 
 const getLeaveTypes = async (req, res) => {
   try {
@@ -76,6 +77,23 @@ const getAllRequests = async (req, res) => {
 const approveRequest = async (req, res) => {
   try {
     const data = await leaveService.approveRequest(req.params.id, req.user.id);
+    const ipAddress = auditService.extractIp(req);
+
+    await auditService.log({
+      userId: req.user.id,
+      action: 'LEAVE_APPROVED',
+      targetId: parseInt(req.params.id, 10),
+      targetType: 'LEAVE_REQUEST',
+      metadata: {
+        employeeId: data.employee_id,
+        leaveType: data.leave_type_name,
+        startDate: data.start_date,
+        endDate: data.end_date,
+        totalDays: data.total_days,
+      },
+      ipAddress,
+    });
+
     res.json({ success: true, message: 'Leave approved', data });
   } catch (error) {
     res.status(error.status || 500).json({ success: false, message: error.message });
@@ -85,6 +103,20 @@ const approveRequest = async (req, res) => {
 const rejectRequest = async (req, res) => {
   try {
     const data = await leaveService.rejectRequest(req.params.id, req.user.id);
+    const ipAddress = auditService.extractIp(req);
+
+    await auditService.log({
+      userId: req.user.id,
+      action: 'LEAVE_REJECTED',
+      targetId: parseInt(req.params.id, 10),
+      targetType: 'LEAVE_REQUEST',
+      metadata: {
+        employeeId: data.employee_id,
+        status: 'rejected',
+      },
+      ipAddress,
+    });
+
     res.json({ success: true, message: 'Leave rejected', data });
   } catch (error) {
     res.status(error.status || 500).json({ success: false, message: error.message });

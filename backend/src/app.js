@@ -13,6 +13,7 @@ const dashboardRoutes = require('./modules/dashboard/dashboard.routes');
 const notificationsRoutes = require('./modules/notifications/notifications.routes');
 const settingsRoutes = require('./modules/settings/settings.routes');
 const searchRoutes = require('./modules/search/search.routes');
+const auditRoutes = require('./modules/audit/audit.routes');
 
 const app = express();
 const http = require('http');
@@ -56,6 +57,7 @@ app.use('/api/dashboard', apiLimiter, dashboardRoutes);
 app.use('/api/notifications', apiLimiter, notificationsRoutes);
 app.use('/api/settings', apiLimiter, settingsRoutes);
 app.use('/api/search', apiLimiter, searchRoutes);
+app.use('/api/admin/audit-logs', apiLimiter, auditRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

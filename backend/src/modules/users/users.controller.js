@@ -1,4 +1,5 @@
 const usersService = require('./users.service');
+const auditService = require('../audit/audit.service');
 
 const getAll = async (req, res) => {
   try {
@@ -24,7 +25,32 @@ const getById = async (req, res) => {
 
 const update = async (req, res) => {
   try {
+    // Fetch old user data before update for audit
+    let oldUser = null;
+    try {
+      oldUser = await usersService.getById(req.params.id);
+    } catch {
+      // proceed anyway
+    }
+
     const user = await usersService.update(req.params.id, req.body, req.user);
+    const ipAddress = auditService.extractIp(req);
+
+    // Log role change if the role field was updated
+    if (oldUser && req.body.role && req.body.role !== oldUser.role) {
+      await auditService.log({
+        userId: req.user.id,
+        action: 'ROLE_CHANGED',
+        targetId: parseInt(req.params.id, 10),
+        targetType: 'USER',
+        metadata: {
+          oldRole: oldUser.role,
+          newRole: req.body.role,
+        },
+        ipAddress,
+      });
+    }
+
     res.json({ success: true, message: 'User updated successfully', data: user });
   } catch (error) {
     res.status(error.status || 500).json({ success: false, message: error.message || 'Internal server error' });
@@ -34,6 +60,17 @@ const update = async (req, res) => {
 const toggleActive = async (req, res) => {
   try {
     const user = await usersService.toggleActive(req.params.id);
+    const ipAddress = auditService.extractIp(req);
+
+    await auditService.log({
+      userId: req.user.id,
+      action: user.is_active ? 'USER_ACTIVATED' : 'USER_DEACTIVATED',
+      targetId: parseInt(req.params.id, 10),
+      targetType: 'USER',
+      metadata: { is_active: user.is_active },
+      ipAddress,
+    });
+
     res.json({ success: true, message: `User ${user.is_active ? 'activated' : 'deactivated'} successfully`, data: user });
   } catch (error) {
     res.status(error.status || 500).json({ success: false, message: error.message || 'Internal server error' });
@@ -43,6 +80,17 @@ const toggleActive = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const user = await usersService.softDelete(req.params.id);
+    const ipAddress = auditService.extractIp(req);
+
+    await auditService.log({
+      userId: req.user.id,
+      action: 'USER_DELETED',
+      targetId: parseInt(req.params.id, 10),
+      targetType: 'USER',
+      metadata: { full_name: user.full_name, email: user.email },
+      ipAddress,
+    });
+
     res.json({ success: true, message: 'User deactivated successfully', data: user });
   } catch (error) {
     res.status(error.status || 500).json({ success: false, message: error.message || 'Internal server error' });

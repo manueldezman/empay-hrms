@@ -1,8 +1,45 @@
 const payrollService = require('./payroll.service');
+const auditService = require('../audit/audit.service');
 
 const upsertSalaryStructure = async (req, res) => {
   try {
+    // Fetch old salary structure before upsert for audit
+    let oldSalary = null;
+    try {
+      const existing = await payrollService.getSalaryStructure(req.body.employee_id);
+      oldSalary = existing;
+    } catch {
+      // No existing structure — first-time assignment
+    }
+
     const data = await payrollService.upsertSalaryStructure(req.body);
+    const ipAddress = auditService.extractIp(req);
+
+    // Log salary modification
+    await auditService.log({
+      userId: req.user.id,
+      action: 'SALARY_UPDATED',
+      targetId: req.body.employee_id,
+      targetType: 'EMPLOYEE',
+      metadata: {
+        oldSalary: oldSalary
+          ? {
+              basic_salary: oldSalary.basic_salary,
+              hra_percent: oldSalary.hra_percent,
+              special_allowance: oldSalary.special_allowance,
+              effective_from: oldSalary.effective_from,
+            }
+          : null,
+        newSalary: {
+          basic_salary: req.body.basic_salary,
+          hra_percent: req.body.hra_percent,
+          special_allowance: req.body.special_allowance,
+          effective_from: req.body.effective_from,
+        },
+      },
+      ipAddress,
+    });
+
     res.json({ success: true, message: 'Salary structure saved', data });
   } catch (error) {
     res.status(error.status || 500).json({ success: false, message: error.message });
