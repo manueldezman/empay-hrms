@@ -70,6 +70,13 @@
 - Password reset flow with tokenized email links
 - Gmail SMTP integration (or Ethereal for development)
 
+### 🔍 Audit Log System
+- Compliance-grade tracking of sensitive system actions
+- Automatic logging for salary modifications, role changes, and leave approvals/rejections
+- Each record captures: who performed the action, what action, target entity, timestamp, and IP address
+- Admin-only read-only access with filtering (by user, action, date range) and pagination
+- Secure — logs are non-editable, non-deletable (except via DB maintenance policy)
+
 ---
 
 ## 🏗️ Architecture
@@ -89,7 +96,8 @@ empay-hrms/
 │   │   │   ├── payroll/              # Payruns, salary, payslips, PDF
 │   │   │   ├── dashboard/            # Role-specific analytics
 │   │   │   ├── notifications/        # Real-time alerts
-│   │   │   └── settings/             # Company settings
+│   │   │   ├── settings/             # Company settings
+│   │   │   └── audit/                # Audit log tracking & queries
 │   │   └── utils/                    # Mailer, email templates
 │   ├── uploads/avatars/              # Profile picture storage
 │   └── seed-demo-data.js             # Demo data seeder
@@ -294,14 +302,17 @@ users ──────────────── 1:N ──── attendan
   ├── 1:N ──── payslips ──── N:1 ──── payruns
   │              (gross, deductions, net_pay)    (month, year, status)
   │
-  └── 1:N ──── notifications
-                 (title, message, is_read)
+  ├── 1:N ──── notifications
+  │              (title, message, is_read)
+  │
+  └── 1:N ──── audit_logs
+                 (action, target, metadata, ip_address)
 
 leave_types ──── 1:N ──── leave_requests
                  1:N ──── leave_allocations
 ```
 
-**10 tables** with full referential integrity, CHECK constraints, and proper indexing.
+**11 tables** with full referential integrity, CHECK constraints, and proper indexing.
 
 ---
 

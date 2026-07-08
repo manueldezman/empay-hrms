@@ -5,7 +5,7 @@ import UserAvatar from '../shared/UserAvatar';
 import {
   LayoutDashboard, Users, CalendarCheck, CalendarOff, Banknote,
   Settings, UserPlus, CheckSquare, Receipt, DollarSign,
-  BookUser, LogOut, Building2, ChevronsLeft, ChevronsRight
+  BookUser, LogOut, Building2, ChevronsLeft, ChevronsRight, ScrollText
 } from 'lucide-react';
 
 const roleMenus = {
@@ -16,6 +16,7 @@ const roleMenus = {
     { label: 'Leaves', path: '/hr/leaves', icon: CalendarOff },
     { label: 'Payroll', path: '/payroll/payruns', icon: Banknote },
     { label: 'Salary Structures', path: '/payroll/salary', icon: DollarSign },
+    { label: 'Audit Logs', path: '/admin/audit-logs', icon: ScrollText },
     { label: 'Settings', path: '/admin/settings', icon: Settings },
   ],
   hr_officer: [
