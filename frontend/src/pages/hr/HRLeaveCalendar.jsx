@@ -4,7 +4,7 @@ import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
 import api from '../../api/axios';
 import PageHeader from '../../components/shared/PageHeader';
-import { CalendarRange, CalendarCheck, CalendarX } from 'lucide-react';
+import { CalendarCheck, CalendarX } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ── date-fns localizer ─────────────────────────────────────────
@@ -66,7 +66,6 @@ function mapLeaveToEvent(leaveRequest) {
 // ── Component ──────────────────────────────────────────────────
 export default function HRLeaveCalendar() {
   const [leaves, setLeaves] = useState([]);
-  const [leaveTypes, setLeaveTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -74,12 +73,8 @@ export default function HRLeaveCalendar() {
     setLoading(true);
     setError(null);
     try {
-      const [leavesRes, typesRes] = await Promise.all([
-        api.get('/leave/requests/all?status=approved'),
-        api.get('/leave/types'),
-      ]);
-      setLeaves(leavesRes.data.data || []);
-      setLeaveTypes(typesRes.data.data || []);
+      const res = await api.get('/leave/requests/all?status=approved');
+      setLeaves(res.data.data || []);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Failed to load calendar data';
       setError(msg);
@@ -92,17 +87,6 @@ export default function HRLeaveCalendar() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  // Build colour map from live leave types (future-proof name changes)
-  const leaveTypeColorMap = useMemo(() => {
-    const map = { ...LEAVE_TYPE_COLORS };
-    leaveTypes.forEach((lt, i) => {
-      if (!map[lt.name]) {
-        map[lt.name] = PALETTE[i % PALETTE.length];
-      }
-    });
-    return map;
-  }, [leaveTypes]);
 
   // Transform leave requests into calendar events
   const events = useMemo(() => leaves.map(mapLeaveToEvent), [leaves]);
